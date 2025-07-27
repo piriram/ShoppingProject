@@ -65,7 +65,7 @@ class ResultViewController: UIViewController {
     }
     
     private func fetchProducts() {
-        NaverShoppingAPI.shared.fetchProducts(query: keyword, display: 100) { [weak self] result in
+        NaverShoppingAPI.shared.fetchProducts(query: keyword, display: 100, sort:sortView.selectedType.rawValue) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
@@ -79,6 +79,7 @@ class ResultViewController: UIViewController {
             }
         }
     }
+    
     func configureToast() {
         var style = ToastStyle()
         style.backgroundColor = .white

@@ -4,25 +4,23 @@
 //
 //  Created by piri kim on 7/27/25.
 //
-
 import UIKit
 import SnapKit
 
 final class SortButtonView: UIView {
     
-    var selects: ((SortType) -> Void)?
-    private var selectedType: SortType = .accuracy {
+    var selectedType: SortType = .accuracy {
         didSet {
             updateBtnState()
         }
     }
-    
-    private var btns: [SortType: UIButton] = [:]
 
+    private var btns: [SortType: UIButton] = [:]
+    
     private let scrollView: UIScrollView = {
-        let scrollView = UIScrollView()
-        scrollView.showsHorizontalScrollIndicator = false
-        return scrollView
+        let sv = UIScrollView()
+        sv.showsHorizontalScrollIndicator = false
+        return sv
     }()
     
     private let stackView: UIStackView = {
@@ -48,7 +46,7 @@ final class SortButtonView: UIView {
         super.init(coder: coder)
         configure()
     }
-
+    
     private func configureUI() {
         addSubview(scrollView)
         scrollView.snp.makeConstraints {
@@ -61,7 +59,7 @@ final class SortButtonView: UIView {
             $0.height.equalToSuperview()
         }
     }
-
+    
     private func configureBtn() {
         SortType.allCases.forEach { type in
             let btn = createBtn(for: type)
@@ -74,38 +72,30 @@ final class SortButtonView: UIView {
     private func createBtn(for type: SortType) -> UIButton {
         let button = UIButton(type: .system)
         button.configuration = nil
-
+        
         button.setTitle(type.title, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 13)
         
         button.contentEdgeInsets = .init(top: 8, left: 12, bottom: 8, right: 12)
-        button.setContentHuggingPriority(.required, for: .horizontal)
-        button.setContentCompressionResistancePriority(.required, for: .horizontal)
         
         button.layer.cornerRadius = 10
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.white.cgColor
         
-        button.addTarget(self, action: #selector(sortButtonTapped(_:)), for: .touchUpInside)
-        
+        button.addTarget(self, action: #selector(sortBtnTapped(_:)), for: .touchUpInside)
         return button
     }
-
-    @objc private func sortButtonTapped(_ sender: UIButton) {
+    
+    @objc private func sortBtnTapped(_ sender: UIButton) {
         guard let selected = btns.first(where: { $0.value == sender })?.key else { return }
         selectedType = selected
-        selects?(selected)
     }
     
     private func updateBtnState() {
-        for (type, button) in btns {
+        for (type, btn) in btns {
             let isSelected = (type == selectedType)
-            button.backgroundColor = isSelected ? .white : .clear
-            button.setTitleColor(isSelected ? .black : .white, for: .normal)
+            btn.backgroundColor = isSelected ? .white : .clear
+            btn.setTitleColor(isSelected ? .black : .white, for: .normal)
         }
-    }
-
-    func resetSelection(to type: SortType) {
-        selectedType = type
     }
 }

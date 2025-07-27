@@ -21,11 +21,12 @@ final class NaverShoppingAPI {
     
     private init() {}
     
-    func fetchProducts(query:String,display:Int,completion: @escaping (Result<ProductTotal, Error>) -> Void) {
+    func fetchProducts(query:String,display:Int,sort:String,completion: @escaping (Result<ProductTotal, Error>) -> Void) {
         // TODO: Sort 추가하기
         let parameters: [String: String] = [
             "query": query,
-            "display": "\(display)"
+            "display": "\(display)",
+            "sort": "\(sort)"
         ]
         
         AF.request(url,
