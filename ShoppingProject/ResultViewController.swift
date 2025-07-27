@@ -41,6 +41,10 @@ class ResultViewController: UIViewController {
         
         configureUI()
         fetchProducts()
+        
+        sortView.onSortSelected = { [weak self] sortType in
+            self?.fetchProducts()
+        }
     }
     
     private func configureUI() {

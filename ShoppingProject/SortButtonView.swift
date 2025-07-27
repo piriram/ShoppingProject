@@ -15,6 +15,8 @@ final class SortButtonView: UIView {
         }
     }
 
+    var onSortSelected: ((SortType) -> Void)?
+    
     private var btns: [SortType: UIButton] = [:]
     
     private let scrollView: UIScrollView = {
@@ -89,6 +91,7 @@ final class SortButtonView: UIView {
     @objc private func sortBtnTapped(_ sender: UIButton) {
         guard let selected = btns.first(where: { $0.value == sender })?.key else { return }
         selectedType = selected
+        onSortSelected?(selected)
     }
     
     private func updateBtnState() {
