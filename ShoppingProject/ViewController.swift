@@ -18,3 +18,17 @@ class ViewController: UIViewController {
 
 }
 
+extension Int {
+    var decimalString: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+    }
+}
+
+extension String {
+    var decimalString: String {
+        guard let number = Int(self) else { return self }
+        return number.decimalString
+    }
+}

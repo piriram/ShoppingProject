@@ -10,11 +10,13 @@
 
 import UIKit
 import SnapKit
+import Toast
 
-class SearchViewController: UIViewController,UISearchBarDelegate {
+class SearchViewController: UIViewController {
     private let searchBar = UISearchBar()
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureToast()
         configureUI()
         configureLayout()
     }
@@ -26,10 +28,41 @@ class SearchViewController: UIViewController,UISearchBarDelegate {
         view.addSubview(searchBar)
     }
     
+    
     private func configureLayout() {
         searchBar.snp.makeConstraints { make in
             make.horizontalEdges.top.equalTo(view.safeAreaLayoutGuide)
             make.height.equalTo(44)
         }
+    }
+    private func goResultPage(keyword: String) {
+        let vc = ResultViewController()
+        vc.keyword = keyword
+        navigationController?.title = keyword
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func configureToast() {
+        var style = ToastStyle()
+        style.backgroundColor = .white
+        style.messageColor = .black
+        ToastManager.shared.style = style
+    }
+}
+
+extension SearchViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let text = searchBar.text, !text.isEmpty else {
+            self.view.makeToast("검색어를 입력해주세요.", duration: 2.0, position: .center)
+            return
+        }
+        
+        guard text.count >= 2 else {
+            self.view.makeToast("2글자 이상 입력해주세요.", duration: 2.0, position: .center)
+            return
+        }
+        
+        goResultPage(keyword: text)
+        searchBar.resignFirstResponder()
     }
 }
