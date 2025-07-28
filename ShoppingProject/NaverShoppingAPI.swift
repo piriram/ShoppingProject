@@ -29,7 +29,7 @@ final class NaverShoppingAPI {
             "query": query,
             "display": "\(display)",
             "sort": "\(sort)",
-            "start": "1",
+            "start": "\(start)",
             "filter": filter,
             "exclude": exclude
         ]
@@ -55,12 +55,12 @@ final class NaverShoppingAPI {
     func fetchProducts(query: String, display: Int, completion: @escaping (Result<ProductTotal, Error>) -> Void) {
         fetchProducts(query: query, display: display, sort: "sim", completion: completion)
     }
-
+    
     // 2. display 기본값도 제공
     func fetchProducts(query: String, completion: @escaping (Result<ProductTotal, Error>) -> Void) {
         fetchProducts(query: query, display: 30, sort: "sim", completion: completion)
     }
-
+    
     // 3. 실제 로직 처리하는 함수 (기존 함수)
     func fetchProducts(query: String, display: Int, sort: String, completion: @escaping (Result<ProductTotal, Error>) -> Void) {
         let parameters: [String: String] = [
@@ -84,6 +84,6 @@ final class NaverShoppingAPI {
             }
         }
     }
-
+    
 }
 

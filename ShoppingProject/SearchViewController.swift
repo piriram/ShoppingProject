@@ -38,6 +38,7 @@ class SearchViewController: UIViewController {
     private func goResultPage(keyword: String) {
         let vc = ResultViewController()
         vc.keyword = keyword
+        vc.isReset = true
         navigationController?.title = keyword
         navigationController?.pushViewController(vc, animated: true)
     }
