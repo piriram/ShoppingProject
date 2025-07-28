@@ -39,6 +39,7 @@ class SearchViewController: UIViewController {
         let vc = ResultViewController()
         vc.keyword = keyword
         vc.isReset = true
+        navigationItem.backButtonTitle = ""
         navigationController?.title = keyword
         navigationController?.pushViewController(vc, animated: true)
     }

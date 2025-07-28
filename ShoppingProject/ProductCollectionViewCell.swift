@@ -7,13 +7,25 @@
 import UIKit
 import SnapKit
 import Kingfisher
-
+// TODO: 버튼 하트에 제스처 넣기
 class ProductCollectionViewCell: UICollectionViewCell {
     
     let productImageView = UIImageView()
     let mallLabel = UILabel()
     let titleLabel = UILabel()
     let priceLabel = UILabel()
+    let heartButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "heart"), for: .normal)
+        button.tintColor = .black
+        button.backgroundColor = .white
+        button.layer.cornerRadius = 15
+        button.layer.masksToBounds = true
+        button.layer.borderColor = UIColor.black.cgColor
+//        button.isUserInteractionEnabled = false
+        return button
+    }()
+
     let spacing:CGFloat = 4
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -31,6 +43,7 @@ class ProductCollectionViewCell: UICollectionViewCell {
         productImageView.layer.cornerRadius = 16
         productImageView.clipsToBounds = true
         
+        
         mallLabel.font = .systemFont(ofSize: 12)
         mallLabel.textColor = .gray
         
@@ -46,6 +59,8 @@ class ProductCollectionViewCell: UICollectionViewCell {
         addSubview(mallLabel)
         addSubview(titleLabel)
         addSubview(priceLabel)
+        addSubview(heartButton)
+
     }
     
     func configureLayout() {
@@ -55,6 +70,12 @@ class ProductCollectionViewCell: UICollectionViewCell {
             $0.bottom.equalTo(contentView.safeAreaLayoutGuide).inset(8) // 패딩이 왜 안먹는걸까?
             
         }
+        
+        heartButton.snp.makeConstraints {
+            $0.size.equalTo(30)
+            $0.bottom.right.equalTo(productImageView).inset(8)
+        }
+
         
         mallLabel.snp.makeConstraints {
             $0.top.equalTo(productImageView.snp.bottom).offset(spacing + 4)

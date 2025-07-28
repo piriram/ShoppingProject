@@ -6,6 +6,7 @@
 //
 // MARK: 검색 결과 리스트 화면
 // TODO: 아이패드도 대응해보기
+// TODO: fatal Error를 어떻게 더 안전하게 만들 수 있을지 고민해보기
 import UIKit
 import SnapKit
 import Toast
@@ -41,6 +42,7 @@ class ResultViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationController?.navigationBar.tintColor = .white
         configureToast()
         title = keyword
         
@@ -50,11 +52,11 @@ class ResultViewController: UIViewController {
         sortView.onSortSelected = { [weak self] sortType in
             self?.isReset = true
             
-            self?.hasMoreData = true
-            self?.products = []
-            self?.currentStart = 1
+//            self?.hasMoreData = true
+//            self?.products = []
+//            self?.currentStart = 1
             self?.collectionView.setContentOffset(.zero, animated: true)
-            self?.collectionView.reloadData()
+//            self?.collectionView.reloadData()
             self?.fetchProducts()
         }
     }
@@ -96,6 +98,9 @@ class ResultViewController: UIViewController {
 //            collectionView.reloadData()
             
             isReset = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.collectionView.reloadData()
+            }
         }
         NaverShoppingAPI.shared.fetchAllQueryProducts(query: keyword, display: 30, sort: sortView.selectedType.rawValue, start: currentStart ){ [weak self] result in
             
@@ -109,12 +114,15 @@ class ResultViewController: UIViewController {
                     self.products += response.items
                     
                     /// currentStart 계산
-                    if self.currentStart + self.display > response.total {
+                    if self.currentStart + self.display > response.total && response.total > 970{
                         self.hasMoreData = false
                     } else{
                         self.currentStart += self.display
                     }
-                    self.collectionView.reloadData()
+//                    self.collectionView.reloadData()
+                    UIView.performWithoutAnimation {
+                        self.collectionView.reloadData()
+                    }
                     self.isLoading = false
                     //                    self?.products = response.items
                     self.totalLabel.text = "\(response.total.decimalString) 개의 검색 결과"
