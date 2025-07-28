@@ -33,7 +33,7 @@ final class NaverShoppingAPI {
             "filter": filter,
             "exclude": exclude
         ]
-        
+        print("start:\(start)")
         AF.request(url,
                    method: .get,
                    parameters: parameters,

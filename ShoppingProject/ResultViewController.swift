@@ -53,6 +53,7 @@ class ResultViewController: UIViewController {
             self?.hasMoreData = true
             self?.products = []
             self?.currentStart = 1
+            self?.collectionView.setContentOffset(.zero, animated: true)
             self?.collectionView.reloadData()
             self?.fetchProducts()
         }
@@ -88,10 +89,11 @@ class ResultViewController: UIViewController {
         /// 새로 조회할 때
         if isReset {
             
-//            currentStart = 1
+            currentStart = 1
             hasMoreData = true
             products = []
-            collectionView.reloadData()
+            /// fatal error 원인?
+//            collectionView.reloadData()
             
             isReset = false
         }
@@ -139,9 +141,20 @@ extension ResultViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        /// fatal error
+//        guard indexPath.item < products.count else {
+//            return UICollectionViewCell() // 빈셀
+//        }
+//        guard indexPath.item < products.count else {
+//            fatalError("indexPath 범위를 벗어났습니다.")
+//        }
+//        
+        
         guard indexPath.item < products.count else {
-            return UICollectionViewCell() // 빈셀
+            assertionFailure("indexPath.item \(indexPath.item) < products.count \(products.count)")
+            return UICollectionViewCell()
         }
+        
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ProductCell", for: indexPath) as? ProductCollectionViewCell else {
             return UICollectionViewCell()
         }
@@ -150,10 +163,11 @@ extension ResultViewController: UICollectionViewDataSource {
         return cell
     }
 }
-extension ResultViewController:UICollectionViewDelegate{
+extension ResultViewController: UICollectionViewDelegate{
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         print("indexPath.row \(indexPath.row)")
-        if indexPath.row >= products.count - 4 && hasMoreData && !isLoading{
+        guard products.indices.contains(indexPath.item) else { return }
+        if indexPath.row >= products.count - 10 && hasMoreData && !isLoading{
             fetchProducts()
             print(#function)
         }
