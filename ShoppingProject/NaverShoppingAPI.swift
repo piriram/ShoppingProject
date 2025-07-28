@@ -21,6 +21,34 @@ final class NaverShoppingAPI {
     ]
     
     private init() {}
+    func fetchAllQueryProducts(query: String, display: Int, sort: String, start: Int,completion: @escaping (Result<ProductTotal, Error>) -> Void){
+        fetchAllQueryProducts(query: query, display: display, sort: sort, start: start, filter: "", exclude: "", completion: completion)
+    }
+    func fetchAllQueryProducts(query: String, display: Int, sort: String,start: Int,filter:String,exclude:String,completion: @escaping (Result<ProductTotal, Error>) -> Void) {
+        let parameters: [String: String] = [
+            "query": query,
+            "display": "\(display)",
+            "sort": "\(sort)",
+            "start": "1",
+            "filter": filter,
+            "exclude": exclude
+        ]
+        
+        AF.request(url,
+                   method: .get,
+                   parameters: parameters,
+                   headers: headers)
+        .validate(statusCode: 200..<300)
+        .responseDecodable(of: ProductTotal.self) { response in
+            switch response.result {
+            case .success(let data):
+                dump(data)
+                completion(.success(data))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
     
     // MARK: 함수 오버로딩으로 사용해봄
     // 1. sort 기본값 제공
