@@ -17,9 +17,9 @@ class ResultViewController: UIViewController {
     private var products: [Product] = []
     private let totalLabel = UILabel()
     private let sortView = SortButtonView()
-    var display = 30
-    var currentStart = 1
-  
+    var display = 100
+    var currentStart = 901
+    
     var isReset = false
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -34,7 +34,6 @@ class ResultViewController: UIViewController {
         
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.dataSource = self
-//        collectionView.delegate = self
         collectionView.prefetchDataSource = self
         collectionView.register(ProductCollectionViewCell.self, forCellWithReuseIdentifier: "ProductCell")
         return collectionView
@@ -51,12 +50,7 @@ class ResultViewController: UIViewController {
         
         sortView.onSortSelected = { [weak self] sortType in
             self?.isReset = true
-            
-//            self?.hasMoreData = true
-//            self?.products = []
-//            self?.currentStart = 1
             self?.collectionView.setContentOffset(.zero, animated: true)
-//            self?.collectionView.reloadData()
             self?.fetchProducts()
         }
     }
@@ -74,7 +68,6 @@ class ResultViewController: UIViewController {
         sortView.snp.makeConstraints {
             $0.top.equalTo(totalLabel.snp.bottom).offset(8)
             $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide)
-//            $0.horizontalEdges.equalToSuperview()
         }
         
         collectionView.snp.makeConstraints {
@@ -83,8 +76,18 @@ class ResultViewController: UIViewController {
         }
     }
     
+    func validateTotalNum(_ response: ProductTotal) {
+        let currentText = self.totalLabel.text ?? ""
+        let currentNumberString = currentText.components(separatedBy: " ").first?.replacingOccurrences(of: ",", with: "")
+        let currentTotal = Int(currentNumberString ?? "") ?? 0
+        
+        if currentTotal < response.total {
+            self.totalLabel.text = "\(response.total.decimalString) 개의 검색 결과"
+        }
+    }
+    
     private func fetchProducts() {
-   
+        
         
         /// 새로 조회할 때
         if isReset {
@@ -96,8 +99,10 @@ class ResultViewController: UIViewController {
             collectionView.reloadData()
             
             isReset = false
-           
+            
         }
+        
+        
         NaverShoppingAPI.shared.fetchAllQueryProducts(query: keyword, display: display, sort: sortView.selectedType.rawValue, start: currentStart ){ [weak self] result in
             
             guard let self = self else { return } /// weak self의 순환 참조를 방지하기 위해 옵셔널 체이닝 되던것에서 물음표 제거하기위해 사용
@@ -109,16 +114,19 @@ class ResultViewController: UIViewController {
                     // TODO: 리셋일때 따로 메서드 생성하기
                     self.products += response.items
                     
-                   
+                    
                     self.currentStart += self.display
-//                    self.collectionView.reloadData()
-                   
                     
-                    //                    self?.products = response.items
-                    self.totalLabel.text = "\(response.total.decimalString) 개의 검색 결과"
-                    //                    self?.collectionView.reloadData()
+//                    if self.currentStart > 1000{
+//                       // 이후 과정을 하지않고 토스트 메시지 띄우기
+//                        self.view.makeToast("더이상 보여줄 상품이 없습니다.", duration: 2.0, position: .center)
+//
+//                    }
                     
-                        self.collectionView.reloadData()
+                    self.validateTotalNum(response)
+
+                    
+                    self.collectionView.reloadData()
                     print("products count : \(self.products.count)")
                     
                 case .failure(let error):
@@ -145,28 +153,28 @@ extension ResultViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         print("indexPath \(indexPath.item) | products.count: \(products.count)")
         guard products.indices.contains(indexPath.item) else {
-               
-               return UICollectionViewCell()
-           }
+            
+            return UICollectionViewCell()
+        }
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ProductCell", for: indexPath) as? ProductCollectionViewCell else {
             return UICollectionViewCell()
         }
         
+        
+        
         cell.configureData(products[indexPath.item])
+        
+        cell.onLikeTapped = { [weak self] in
+            guard let self = self else { return }
+            self.products[indexPath.item].isLiked.toggle()
+            print("self.products[indexPath.item].isLiked: \(String(describing: self.products[indexPath.item].isLiked))")
+            cell.updateLikeButton(isLiked: self.products[indexPath.item].isLiked)
+//            self.collectionView.reloadItems(at: [indexPath])
+//            cell.updateLikeButton(isLiked: self.products[indexPath.item].isLiked ?? false)
+        }
         return cell
     }
 }
-//extension ResultViewController: UICollectionViewDelegate{
-//    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//        print("indexPath.row \(indexPath.row)")
-////        guard products.indices.contains(indexPath.item) else { return }
-//        if indexPath.row >= products.count - 10 {
-//            fetchProducts()
-//            print(#function)
-//        }
-//    }
-//    
-//}
 
 extension ResultViewController: UICollectionViewDataSourcePrefetching {
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {

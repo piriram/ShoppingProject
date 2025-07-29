@@ -40,7 +40,7 @@ extension String {
         ]
         
         do {
-            let attributedString = try NSAttributedString(data: data, options: options, documentAttributes: nil)
+            let attributedString = try NSAttributedString(data: data, options: options, documentAttributes: nil) // 오브젝트c 기반이라 do-catch문으로 크래시 방지가 안됨
             return attributedString.string
         } catch {
             print("HTML 변환 실패: \(error.localizedDescription)")

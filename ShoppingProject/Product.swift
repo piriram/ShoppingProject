@@ -18,4 +18,8 @@ struct Product: Decodable {
     let image: String
     let lprice: String
     let mallName: String
+    var isLiked:Bool = false
+    private enum CodingKeys: String, CodingKey {// isLiked를 디코딩 대상에서 제외
+        case title, link, image, lprice, mallName
+    }
 }

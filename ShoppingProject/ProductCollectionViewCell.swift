@@ -22,10 +22,10 @@ class ProductCollectionViewCell: UICollectionViewCell {
         button.layer.cornerRadius = 15
         button.layer.masksToBounds = true
         button.layer.borderColor = UIColor.black.cgColor
-//        button.isUserInteractionEnabled = false
+        button.isUserInteractionEnabled = true
         return button
     }()
-
+    var onLikeTapped: (() -> Void)? // 외부에 이벤트 전달함
     let spacing:CGFloat = 4
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -36,7 +36,11 @@ class ProductCollectionViewCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+    @objc private func heartTapped(){
+        print("tapped")
+        onLikeTapped?()
+        
+    }
     func configureUI() {
         
         productImageView.contentMode = .scaleAspectFill
@@ -55,14 +59,22 @@ class ProductCollectionViewCell: UICollectionViewCell {
         priceLabel.font = .boldSystemFont(ofSize: 18)
         priceLabel.textColor = .white
         
+        
+        
         addSubview(productImageView)
         addSubview(mallLabel)
         addSubview(titleLabel)
         addSubview(priceLabel)
-        addSubview(heartButton)
+        contentView.addSubview(heartButton)
+        
+        heartButton.addTarget(self, action: #selector(heartTapped), for: .touchUpInside)
+
 
     }
-    
+    func updateLikeButton(isLiked: Bool) {
+        let imageName = isLiked ? "heart.fill" : "heart"
+        heartButton.setImage(UIImage(systemName: imageName), for: .normal)
+    }
     func configureLayout() {
         productImageView.snp.makeConstraints {
             $0.top.horizontalEdges.equalTo(contentView.safeAreaLayoutGuide).inset(4)
@@ -105,5 +117,7 @@ class ProductCollectionViewCell: UICollectionViewCell {
         mallLabel.text = product.mallName
         titleLabel.text = product.title.removedHtml
         priceLabel.text = product.lprice.decimalString
+        
+        updateLikeButton(isLiked: product.isLiked ?? false)
     }
 }

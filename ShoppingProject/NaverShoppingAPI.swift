@@ -43,6 +43,7 @@ final class NaverShoppingAPI {
             switch response.result {
             case .success(let data):
 //                dump(data)
+                
                 completion(.success(data))
             case .failure(let error):
                 completion(.failure(error))
@@ -50,6 +51,11 @@ final class NaverShoppingAPI {
         }
     }
     
+  
+    
+}
+
+extension NaverShoppingAPI{
     // MARK: 함수 오버로딩으로 사용해봄
     // 1. sort 기본값 제공
     func fetchProducts(query: String, display: Int, completion: @escaping (Result<ProductTotal, Error>) -> Void) {
@@ -84,6 +90,4 @@ final class NaverShoppingAPI {
             }
         }
     }
-    
 }
-

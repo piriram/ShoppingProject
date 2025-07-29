@@ -9,7 +9,7 @@ import SnapKit
 
 final class SortButtonView: UIView {
     
-    var selectedType: SortType = .accuracy {
+    var selectedType: SortType = .sim {
         didSet {
             updateBtnState()
         }
