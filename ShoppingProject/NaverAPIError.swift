@@ -43,3 +43,22 @@ enum NaverAPIError: Error {
         }
     }
 }
+struct NaverAPIErrorResponse: Decodable {
+    let errorCode: String
+    let message: String
+}
+
+extension NaverAPIError {
+    static func fromCode(_ code: String) -> NaverAPIError {
+        switch code {
+        case "SE01": return .incorrectQuery
+        case "SE02": return .invalidDisplayValue
+        case "SE03": return .invalidStartValue
+        case "SE04": return .invalidSortValue
+        case "SE05": return .invalidAPI
+        case "SE06": return .malformedEncoding
+        case "SE99": return .systemError
+        default: return .unknownError(code: code)
+        }
+    }
+}

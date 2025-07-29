@@ -25,6 +25,7 @@ final class NaverShoppingAPI {
         fetchAllQueryProducts(query: query, display: display, sort: sort, start: start, filter: "", exclude: "", completion: completion)
     }
     func fetchAllQueryProducts(query: String, display: Int, sort: String,start: Int,filter:String,exclude:String,completion: @escaping (Result<ProductTotal, Error>) -> Void) {
+       
         let parameters: [String: String] = [
             "query": query,
             "display": "\(display)",
@@ -40,13 +41,29 @@ final class NaverShoppingAPI {
                    headers: headers)
         .validate(statusCode: 200..<300)
         .responseDecodable(of: ProductTotal.self) { response in
+            if let statusCode = response.response?.statusCode,
+               let data = response.data,
+               statusCode >= 400 {
+                if let errorResponse = try? JSONDecoder().decode(NaverAPIErrorResponse.self, from: data){
+                    let error = NaverAPIError.fromCode(errorResponse.errorCode)
+                    completion(.failure(error))
+                    return
+                }
+            }
             switch response.result {
             case .success(let data):
 //                dump(data)
                 
                 completion(.success(data))
             case .failure(let error):
-                completion(.failure(error))
+                if let urlError = error.underlyingError as? URLError,
+                   urlError.code == .notConnectedToInternet {
+                    completion(.failure(NaverAPIError.networkDisconnected))
+                }
+                else{
+                    completion(.failure(NaverAPIError.requestFailed(message: error.localizedDescription)))
+                }
+                
             }
         }
     }

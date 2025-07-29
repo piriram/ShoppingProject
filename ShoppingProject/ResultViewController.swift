@@ -17,7 +17,7 @@ class ResultViewController: UIViewController {
     private var products: [Product] = []
     private let totalLabel = UILabel()
     private let sortView = SortButtonView()
-    var display = 30
+    var display = 100
     var currentStart = 1
     var recommandation: [Product] = []
     
@@ -70,7 +70,7 @@ class ResultViewController: UIViewController {
             self?.collectionView.setContentOffset(.zero, animated: true)
             self?.fetchProducts()
         }
-        fetchRecommendProducts(keyword: "김정은")
+        fetchRecommendProducts(keyword: "쥬토피아")
     }
     
     private func configureUI() {
@@ -98,7 +98,7 @@ class ResultViewController: UIViewController {
         
         recommendationCollectionView.snp.makeConstraints { make in
             make.horizontalEdges.equalTo(view.safeAreaLayoutGuide)
-            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(8)
+            make.bottom.equalTo(view.safeAreaLayoutGuide)
             make.height.equalTo(100)
             
         }
@@ -114,7 +114,7 @@ class ResultViewController: UIViewController {
         }
     }
     func fetchRecommendProducts(keyword: String) {
-        NaverShoppingAPI.shared.fetchAllQueryProducts(query: keyword, display: display, sort: SortType.sim.rawValue, start: 1 ){ [weak self] result in
+        NaverShoppingAPI.shared.fetchAllQueryProducts(query: keyword, display: 10, sort: SortType.sim.rawValue, start: 1 ){ [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
@@ -122,7 +122,13 @@ class ResultViewController: UIViewController {
                     self.recommandation = response.items
                     self.recommendationCollectionView.reloadData()
                 case .failure(let error):
-                    print("error: \(error)")
+                    let message: String
+                    if let error = error as? NaverAPIError {
+                        message = error.message
+                    }else{
+                        message = error.localizedDescription
+                    }
+                    self.view.makeToast(message,duration: 2.0,position: .center)
                 }
             }
         }
@@ -155,14 +161,14 @@ class ResultViewController: UIViewController {
                     // TODO: 리셋일때 따로 메서드 생성하기
                     self.products += response.items
                     
-                    
+                    if  self.currentStart >= 1000{
+                       // 이후 과정을 하지않고 토스트 메시지 띄우기
+                        self.view.makeToast("더이상 보여줄 상품이 없습니다.", duration: 2.0, position: .center)
+                        return
+                    }
                     self.currentStart += self.display
                     
-//                    if self.currentStart > 1000{
-//                       // 이후 과정을 하지않고 토스트 메시지 띄우기
-//                        self.view.makeToast("더이상 보여줄 상품이 없습니다.", duration: 2.0, position: .center)
-//
-//                    }
+                   
                     
                     self.validateTotalNum(response)
 
