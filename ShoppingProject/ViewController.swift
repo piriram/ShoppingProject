@@ -17,26 +17,3 @@ class ViewController: UIViewController {
 
 
 }
-
-extension Int {
-    var decimalString: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
-    }
-}
-
-extension String {
-    var decimalString: String {
-        guard let number = Int(self) else { return self }
-        return number.decimalString
-    }
-    var exportedHtml: String {
-        guard let data = self.data(using: .utf16) else { return self }
-        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
-            .documentType: NSAttributedString.DocumentType.html
-        ]
-        let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil)
-        return attributedString?.string ?? self
-    }
-}

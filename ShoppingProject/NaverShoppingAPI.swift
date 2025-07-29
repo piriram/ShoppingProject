@@ -42,7 +42,7 @@ final class NaverShoppingAPI {
         .responseDecodable(of: ProductTotal.self) { response in
             switch response.result {
             case .success(let data):
-                dump(data)
+//                dump(data)
                 completion(.success(data))
             case .failure(let error):
                 completion(.failure(error))

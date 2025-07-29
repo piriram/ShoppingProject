@@ -103,7 +103,7 @@ class ProductCollectionViewCell: UICollectionViewCell {
             productImageView.kf.setImage(with: url)
         }
         mallLabel.text = product.mallName
-        titleLabel.text = product.title.exportedHtml
+        titleLabel.text = product.title.removedHtml
         priceLabel.text = product.lprice.decimalString
     }
 }

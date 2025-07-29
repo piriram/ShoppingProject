@@ -19,8 +19,7 @@ class ResultViewController: UIViewController {
     private let sortView = SortButtonView()
     var display = 30
     var currentStart = 1
-    var hasMoreData: Bool = true
-    var isLoading = false
+  
     var isReset = false
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -35,7 +34,8 @@ class ResultViewController: UIViewController {
         
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.dataSource = self
-        collectionView.delegate = self
+//        collectionView.delegate = self
+        collectionView.prefetchDataSource = self
         collectionView.register(ProductCollectionViewCell.self, forCellWithReuseIdentifier: "ProductCell")
         return collectionView
     }()
@@ -84,25 +84,21 @@ class ResultViewController: UIViewController {
     }
     
     private func fetchProducts() {
-        /// 페이지 네이션 중복 요청 방지
-        /// 로딩중이거나 가져올 데이터가 없으면 함수 실행 종료
-        guard !isLoading,hasMoreData else { return }
-        isLoading = true
+   
+        
         /// 새로 조회할 때
         if isReset {
-            
+            print("isReset = true")
             currentStart = 1
-            hasMoreData = true
+            
             products = []
             /// fatal error 원인?
-//            collectionView.reloadData()
+            collectionView.reloadData()
             
             isReset = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.collectionView.reloadData()
-            }
+           
         }
-        NaverShoppingAPI.shared.fetchAllQueryProducts(query: keyword, display: 30, sort: sortView.selectedType.rawValue, start: currentStart ){ [weak self] result in
+        NaverShoppingAPI.shared.fetchAllQueryProducts(query: keyword, display: display, sort: sortView.selectedType.rawValue, start: currentStart ){ [weak self] result in
             
             guard let self = self else { return } /// weak self의 순환 참조를 방지하기 위해 옵셔널 체이닝 되던것에서 물음표 제거하기위해 사용
             DispatchQueue.main.async {
@@ -113,20 +109,18 @@ class ResultViewController: UIViewController {
                     // TODO: 리셋일때 따로 메서드 생성하기
                     self.products += response.items
                     
-                    /// currentStart 계산
-                    if self.currentStart + self.display > response.total && response.total > 970{
-                        self.hasMoreData = false
-                    } else{
-                        self.currentStart += self.display
-                    }
+                   
+                    self.currentStart += self.display
 //                    self.collectionView.reloadData()
-                    UIView.performWithoutAnimation {
-                        self.collectionView.reloadData()
-                    }
-                    self.isLoading = false
+                   
+                    
                     //                    self?.products = response.items
                     self.totalLabel.text = "\(response.total.decimalString) 개의 검색 결과"
                     //                    self?.collectionView.reloadData()
+                    
+                        self.collectionView.reloadData()
+                    print("products count : \(self.products.count)")
+                    
                 case .failure(let error):
                     self.view.makeToast("상품을 불러오는 데 실패했습니다", duration: 2.0, position: .center)
                     print(error)
@@ -149,20 +143,11 @@ extension ResultViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        /// fatal error
-//        guard indexPath.item < products.count else {
-//            return UICollectionViewCell() // 빈셀
-//        }
-//        guard indexPath.item < products.count else {
-//            fatalError("indexPath 범위를 벗어났습니다.")
-//        }
-//        
-        
-        guard indexPath.item < products.count else {
-            assertionFailure("indexPath.item \(indexPath.item) < products.count \(products.count)")
-            return UICollectionViewCell()
-        }
-        
+        print("indexPath \(indexPath.item) | products.count: \(products.count)")
+        guard products.indices.contains(indexPath.item) else {
+               
+               return UICollectionViewCell()
+           }
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ProductCell", for: indexPath) as? ProductCollectionViewCell else {
             return UICollectionViewCell()
         }
@@ -171,14 +156,23 @@ extension ResultViewController: UICollectionViewDataSource {
         return cell
     }
 }
-extension ResultViewController: UICollectionViewDelegate{
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        print("indexPath.row \(indexPath.row)")
-        guard products.indices.contains(indexPath.item) else { return }
-        if indexPath.row >= products.count - 10 && hasMoreData && !isLoading{
+//extension ResultViewController: UICollectionViewDelegate{
+//    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+//        print("indexPath.row \(indexPath.row)")
+////        guard products.indices.contains(indexPath.item) else { return }
+//        if indexPath.row >= products.count - 10 {
+//            fetchProducts()
+//            print(#function)
+//        }
+//    }
+//    
+//}
+
+extension ResultViewController: UICollectionViewDataSourcePrefetching {
+    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
+        guard let maxIndex = indexPaths.map({ $0.item }).max() else { return }
+        if maxIndex >= products.count - 10 {
             fetchProducts()
-            print(#function)
         }
     }
 }
-
