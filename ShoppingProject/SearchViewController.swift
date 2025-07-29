@@ -26,6 +26,7 @@ class SearchViewController: UIViewController {
         searchBar.placeholder = "브랜드, 상품, 프로필, 태그 등"
         searchBar.delegate = self
         view.addSubview(searchBar)
+        
     }
     
     

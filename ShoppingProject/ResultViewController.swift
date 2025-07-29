@@ -17,8 +17,10 @@ class ResultViewController: UIViewController {
     private var products: [Product] = []
     private let totalLabel = UILabel()
     private let sortView = SortButtonView()
-    var display = 100
-    var currentStart = 901
+    var display = 30
+    var currentStart = 1
+    var recommandation: [Product] = []
+    
     
     var isReset = false
     private lazy var collectionView: UICollectionView = {
@@ -39,6 +41,21 @@ class ResultViewController: UIViewController {
         return collectionView
     }()
     
+    lazy var recommendationCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.itemSize = CGSize(width: 100, height: 100)
+        layout.minimumLineSpacing = 1
+        layout.sectionInset = .init(top: 0, left: 0, bottom: 0, right: 0)
+        
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.dataSource = self
+        cv.backgroundColor = .clear
+        
+        cv.register(RecommendationCollectionCell.self, forCellWithReuseIdentifier: "RecommendationCell")
+        return cv
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.navigationBar.tintColor = .white
@@ -53,6 +70,7 @@ class ResultViewController: UIViewController {
             self?.collectionView.setContentOffset(.zero, animated: true)
             self?.fetchProducts()
         }
+        fetchRecommendProducts(keyword: "김정은")
     }
     
     private func configureUI() {
@@ -65,6 +83,7 @@ class ResultViewController: UIViewController {
         view.addSubview(collectionView)
         
         view.addSubview(sortView)
+        view.addSubview(recommendationCollectionView)
         sortView.snp.makeConstraints {
             $0.top.equalTo(totalLabel.snp.bottom).offset(8)
             $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide)
@@ -73,6 +92,15 @@ class ResultViewController: UIViewController {
         collectionView.snp.makeConstraints {
             $0.top.equalTo(sortView.snp.bottom).offset(8)
             $0.horizontalEdges.bottom.equalTo(view.safeAreaLayoutGuide)
+//            $0.bottom.equalTo(recommendationCollectionView.snp.top).offset(-8)
+        }
+        
+        
+        recommendationCollectionView.snp.makeConstraints { make in
+            make.horizontalEdges.equalTo(view.safeAreaLayoutGuide)
+            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(8)
+            make.height.equalTo(100)
+            
         }
     }
     
@@ -85,7 +113,20 @@ class ResultViewController: UIViewController {
             self.totalLabel.text = "\(response.total.decimalString) 개의 검색 결과"
         }
     }
-    
+    func fetchRecommendProducts(keyword: String) {
+        NaverShoppingAPI.shared.fetchAllQueryProducts(query: keyword, display: display, sort: SortType.sim.rawValue, start: 1 ){ [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let response):
+                    self.recommandation = response.items
+                    self.recommendationCollectionView.reloadData()
+                case .failure(let error):
+                    print("error: \(error)")
+                }
+            }
+        }
+    }
     private func fetchProducts() {
         
         
@@ -147,32 +188,42 @@ class ResultViewController: UIViewController {
 
 extension ResultViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return products.count
+        if collectionView == self.collectionView {
+            return products.count
+        }
+        else{
+            return recommandation.count
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         print("indexPath \(indexPath.item) | products.count: \(products.count)")
-        guard products.indices.contains(indexPath.item) else {
+        if collectionView == self.collectionView {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ProductCell", for: indexPath) as? ProductCollectionViewCell else {
+                return UICollectionViewCell()
+            }
             
-            return UICollectionViewCell()
+            cell.configureData(products[indexPath.item])
+            
+            cell.onLikeTapped = { [weak self] in
+                guard let self = self else { return }
+                self.products[indexPath.item].isLiked.toggle()
+                print("self.products[indexPath.item].isLiked: \(String(describing: self.products[indexPath.item].isLiked))")
+                cell.updateLikeButton(isLiked: self.products[indexPath.item].isLiked)
+    //            self.collectionView.reloadItems(at: [indexPath])
+    //            cell.updateLikeButton(isLiked: self.products[indexPath.item].isLiked ?? false)
+            }
+            return cell
         }
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ProductCell", for: indexPath) as? ProductCollectionViewCell else {
-            return UICollectionViewCell()
+        else{
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "RecommendationCell", for: indexPath) as! RecommendationCollectionCell
+            cell.configureData(recommandation[indexPath.item])
+            return cell
         }
+       
         
         
-        
-        cell.configureData(products[indexPath.item])
-        
-        cell.onLikeTapped = { [weak self] in
-            guard let self = self else { return }
-            self.products[indexPath.item].isLiked.toggle()
-            print("self.products[indexPath.item].isLiked: \(String(describing: self.products[indexPath.item].isLiked))")
-            cell.updateLikeButton(isLiked: self.products[indexPath.item].isLiked)
-//            self.collectionView.reloadItems(at: [indexPath])
-//            cell.updateLikeButton(isLiked: self.products[indexPath.item].isLiked ?? false)
-        }
-        return cell
+       
     }
 }
 
